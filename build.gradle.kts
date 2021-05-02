@@ -1,7 +1,7 @@
 plugins {
 	kotlin("jvm") version "1.+"
-	id("org.jetbrains.dokka") version "1.+"
-	application
+	id("com.dua3.javafxgradle7plugin") version "0.+"
+	id("org.beryx.jlink") version "2.+"
 	idea
 }
 
@@ -42,34 +42,22 @@ dependencies {
 	val pancakeVersion: String by project
 	implementation("dev.kkorolyov.pancake:pancake-platform:$pancakeVersion")
 	implementation("dev.kkorolyov.pancake:pancake-core:$pancakeVersion")
-	runtimeOnly("dev.kkorolyov.pancake:javafx-application:$pancakeVersion")
-	runtimeOnly("dev.kkorolyov.pancake:javafx-audio:$pancakeVersion")
+	implementation("dev.kkorolyov.pancake:javafx-application:$pancakeVersion") {
+		exclude("org.openjfx")
+	}
+	implementation("dev.kkorolyov.pancake:javafx-audio:$pancakeVersion") {
+		exclude("org.openjfx")
+	}
 
 	val log4jVersion: String by project
 	val jacksonVersion: String by project
 	implementation("org.apache.logging.log4j:log4j-slf4j18-impl:$log4jVersion")
 	implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$jacksonVersion")
-
-	// cannot use openjfx plugin as it also does "patch-module"
-	val os: String = org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.getCurrentOperatingSystem().run {
-		when {
-			isWindows -> "win"
-			isMacOsX -> "mac"
-			isLinux -> "linux"
-			else -> "unknown"
-		}
-	}
-	val javaFxVersion: String by project
-	implementation("org.openjfx:javafx-base:$javaFxVersion:$os")
-	implementation("org.openjfx:javafx-graphics:$javaFxVersion:$os")
-	implementation("org.openjfx:javafx-media:$javaFxVersion:$os")
 }
 
 java {
 	sourceCompatibility = JavaVersion.VERSION_14
 	targetCompatibility = JavaVersion.VERSION_14
-
-	modularity.inferModulePath.set(true)
 }
 
 tasks.compileJava {
@@ -88,4 +76,22 @@ tasks.compileKotlin {
 application {
 	mainModule.set("dev.kkorolyov.ponk")
 	mainClass.set("dev.kkorolyov.ponk.LauncherKt")
+}
+
+javafx {
+	modules("javafx.media")
+}
+
+jlink {
+	mergedModule {
+		requires("java.logging")
+		requires("java.desktop")
+
+		requires("org.slf4j")
+		requires("org.apache.logging.log4j")
+
+		provides("org.slf4j.spi.SLF4JServiceProvider").with("org.apache.logging.slf4j.SLF4JServiceProvider")
+	}
+	// otherwise exists as standalone + merged module - make it just merged
+	forceMerge("kotlin")
 }
