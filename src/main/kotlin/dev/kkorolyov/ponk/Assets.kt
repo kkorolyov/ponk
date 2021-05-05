@@ -20,7 +20,8 @@ import dev.kkorolyov.pancake.platform.math.Vector3
 import dev.kkorolyov.pancake.platform.math.Vectors
 import dev.kkorolyov.pancake.platform.media.graphic.shape.Shape.Color
 import dev.kkorolyov.pancake.platform.media.graphic.shape.Text
-import dev.kkorolyov.pancake.platform.registry.DeferredConverterFactory
+import dev.kkorolyov.pancake.platform.plugin.DeferredConverterFactory
+import dev.kkorolyov.pancake.platform.plugin.Plugins
 import dev.kkorolyov.pancake.platform.registry.Registry
 import dev.kkorolyov.pancake.platform.registry.ResourceReader
 import dev.kkorolyov.ponk.component.Follow
@@ -29,7 +30,7 @@ import dev.kkorolyov.ponk.component.Score
 val actions = Resources.inStream("actions.yaml").use {
 	Registry<String, Action>().apply {
 		load(
-			ResourceReader(DeferredConverterFactory.get(DeferredConverterFactory.ActionStrat::class.java)).fromYaml(
+			ResourceReader(Plugins.deferredConverter(DeferredConverterFactory.ActionStrat::class.java)).fromYaml(
 				it
 			)
 		)
@@ -53,28 +54,28 @@ val ballBounds = Bounds(ballSize)
 val goalBounds = Bounds(goalSize)
 val netBounds = Bounds(netSize)
 
-val paddleGraphic: Graphic = Graphic(Resources.RENDER_MEDIUM.box.apply {
+val paddleGraphic: Graphic = Graphic(Plugins.renderMedium().box.apply {
 	fill = Color.BLACK
 	size.set(paddleSize)
 })
-val ballGraphic: Graphic = Graphic(Resources.RENDER_MEDIUM.box.apply {
+val ballGraphic: Graphic = Graphic(Plugins.renderMedium().box.apply {
 	fill = Color.GRAY
 	size.set(ballSize)
 })
-val goalGraphic: Graphic = Graphic(Resources.RENDER_MEDIUM.box.apply {
+val goalGraphic: Graphic = Graphic(Plugins.renderMedium().box.apply {
 	fill = Color.BLUE
 	size.set(goalSize)
 })
-val netGraphic: Graphic = Graphic(Resources.RENDER_MEDIUM.box.apply {
+val netGraphic: Graphic = Graphic(Plugins.renderMedium().box.apply {
 	fill = Color.RED
 	size.set(netSize)
 })
 
-val playerScore: Text = Resources.RENDER_MEDIUM.text.apply {
+val playerScore: Text = Plugins.renderMedium().text.apply {
 	value = 0.toString()
 	fill = Color.GREEN
 }
-val opponentScore: Text = Resources.RENDER_MEDIUM.text.apply {
+val opponentScore: Text = Plugins.renderMedium().text.apply {
 	value = 0.toString()
 	fill = Color.GREEN
 }
@@ -175,7 +176,7 @@ val entities: EntityPool = EntityPool(events).apply {
 	val helpText = create().apply {
 		add(
 			Transform(Vectors.create(-0.5, -4.0, 1.0)),
-			Graphic(Resources.RENDER_MEDIUM.text.apply {
+			Graphic(Plugins.renderMedium().text.apply {
 				value = "Press SPACE to reset"
 			})
 		)

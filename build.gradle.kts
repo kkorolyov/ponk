@@ -40,12 +40,12 @@ dependencies {
 	implementation("dev.kkorolyov:flopple:$floppleVersion")
 
 	val pancakeVersion: String by project
-	implementation("dev.kkorolyov.pancake:pancake-platform:$pancakeVersion")
-	implementation("dev.kkorolyov.pancake:pancake-core:$pancakeVersion")
-	implementation("dev.kkorolyov.pancake:javafx-application:$pancakeVersion") {
+	implementation("dev.kkorolyov.pancake:platform:$pancakeVersion")
+	implementation("dev.kkorolyov.pancake:core:$pancakeVersion")
+	implementation("dev.kkorolyov.pancake.plugin.app-render:jfx:$pancakeVersion") {
 		exclude("org.openjfx")
 	}
-	implementation("dev.kkorolyov.pancake:javafx-audio:$pancakeVersion") {
+	implementation("dev.kkorolyov.pancake.plugin.audio:jfx:$pancakeVersion") {
 		exclude("org.openjfx")
 	}
 

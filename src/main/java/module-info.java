@@ -12,7 +12,7 @@ module dev.kkorolyov.ponk {
 
 	requires dev.kkorolyov.pancake.platform;
 	requires dev.kkorolyov.pancake.core;
-	requires dev.kkorolyov.pancake.javafx.application;
+	requires dev.kkorolyov.pancake.plugin.apprender.jfx;
 
 	provides GameSystem with ScoreSystem, FollowSystem;
 }
