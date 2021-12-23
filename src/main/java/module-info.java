@@ -1,18 +1,16 @@
-import dev.kkorolyov.pancake.platform.GameSystem;
-import dev.kkorolyov.ponk.system.FollowSystem;
-import dev.kkorolyov.ponk.system.ScoreSystem;
-
 module dev.kkorolyov.ponk {
 	requires kotlin.stdlib;
 
 	// logging
 	requires org.slf4j;
 	requires org.apache.logging.log4j;
-	requires com.fasterxml.jackson.dataformat.yaml;
+	// requires com.fasterxml.jackson.dataformat.yaml;
+
+	requires javafx.graphics;
 
 	requires dev.kkorolyov.pancake.platform;
 	requires dev.kkorolyov.pancake.core;
-	requires dev.kkorolyov.pancake.plugin.apprender.jfx;
-
-	provides GameSystem with ScoreSystem, FollowSystem;
+	requires dev.kkorolyov.pancake.graphics.jfx;
+	requires dev.kkorolyov.pancake.audio.jfx;
+	requires dev.kkorolyov.pancake.input.jfx;
 }

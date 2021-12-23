@@ -1,0 +1,20 @@
+[versions]
+flub = "1.+"
+pancake = "0.+"
+log4j = "2.+"
+jackson = "2.+"
+
+[libraries]
+flub = { module = "dev.kkorolyov:flub", version.ref = "flub" }
+pancake-platform = { module = "dev.kkorolyov.pancake:platform", version.ref = "pancake" }
+pancake-core = { module = "dev.kkorolyov.pancake:core", version.ref = "pancake" }
+pancake-graphics = { module = "dev.kkorolyov.pancake:graphics-jfx", version.ref = "pancake" }
+pancake-audio = { module = "dev.kkorolyov.pancake:audio-jfx", version.ref = "pancake" }
+pancake-input = { module = "dev.kkorolyov.pancake:input-jfx", version.ref = "pancake" }
+
+log4j = { module = "org.apache.logging.log4j:log4j-slf4j18-impl", version.ref = "log4j" }
+jackson = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml", version.ref = "jackson" }
+
+[bundles]
+app = ["flub", "pancake-platform", "pancake-core", "pancake-graphics", "pancake-audio", "pancake-input"]
+log = ["log4j", "jackson"]

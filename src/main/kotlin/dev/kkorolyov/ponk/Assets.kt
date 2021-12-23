@@ -2,30 +2,33 @@ package dev.kkorolyov.ponk
 
 import dev.kkorolyov.pancake.core.component.ActionQueue
 import dev.kkorolyov.pancake.core.component.Bounds
-import dev.kkorolyov.pancake.core.component.Input
 import dev.kkorolyov.pancake.core.component.Transform
-import dev.kkorolyov.pancake.core.component.media.Graphic
 import dev.kkorolyov.pancake.core.component.movement.Damping
 import dev.kkorolyov.pancake.core.component.movement.Force
 import dev.kkorolyov.pancake.core.component.movement.Mass
 import dev.kkorolyov.pancake.core.component.movement.Velocity
 import dev.kkorolyov.pancake.core.component.movement.VelocityCap
 import dev.kkorolyov.pancake.core.event.EntitiesCollided
-import dev.kkorolyov.pancake.core.input.HandlerReader
+import dev.kkorolyov.pancake.graphics.jfx.component.Graphic
+import dev.kkorolyov.pancake.graphics.jfx.drawable.Rectangle
+import dev.kkorolyov.pancake.graphics.jfx.drawable.Text
+import dev.kkorolyov.pancake.input.jfx.Compensated
+import dev.kkorolyov.pancake.input.jfx.Reaction
+import dev.kkorolyov.pancake.input.jfx.component.Input
 import dev.kkorolyov.pancake.platform.Resources
 import dev.kkorolyov.pancake.platform.action.Action
 import dev.kkorolyov.pancake.platform.entity.EntityPool
 import dev.kkorolyov.pancake.platform.event.EventLoop
 import dev.kkorolyov.pancake.platform.math.Vector3
 import dev.kkorolyov.pancake.platform.math.Vectors
-import dev.kkorolyov.pancake.platform.media.graphic.shape.Shape.Color
-import dev.kkorolyov.pancake.platform.media.graphic.shape.Text
 import dev.kkorolyov.pancake.platform.plugin.DeferredConverterFactory
 import dev.kkorolyov.pancake.platform.plugin.Plugins
 import dev.kkorolyov.pancake.platform.registry.Registry
 import dev.kkorolyov.pancake.platform.registry.ResourceReader
 import dev.kkorolyov.ponk.component.Follow
 import dev.kkorolyov.ponk.component.Score
+import javafx.scene.input.KeyCode
+import javafx.scene.paint.Color
 
 val actions = Resources.inStream("actions.yaml").use {
 	Registry<String, Action>().apply {
@@ -37,7 +40,7 @@ val actions = Resources.inStream("actions.yaml").use {
 	}
 }
 
-val paddleVelocityCap = VelocityCap(Vectors.create(20.0, 20.0, 20.0))
+val paddleVelocityCap = VelocityCap(Vectors.create(0.0, 20.0, 20.0))
 val paddleDamping = Damping(Vectors.create(0.0, 0.0, 0.0))
 val paddleMass = Mass(1e-2)
 val ballMass = Mass(1e-9)
@@ -54,36 +57,18 @@ val ballBounds = Bounds(ballSize)
 val goalBounds = Bounds(goalSize)
 val netBounds = Bounds(netSize)
 
-val paddleGraphic: Graphic = Graphic(Plugins.renderMedium().box.apply {
-	fill = Color.BLACK
-	size.set(paddleSize)
-})
-val ballGraphic: Graphic = Graphic(Plugins.renderMedium().box.apply {
-	fill = Color.GRAY
-	size.set(ballSize)
-})
-val goalGraphic: Graphic = Graphic(Plugins.renderMedium().box.apply {
-	fill = Color.BLUE
-	size.set(goalSize)
-})
-val netGraphic: Graphic = Graphic(Plugins.renderMedium().box.apply {
-	fill = Color.RED
-	size.set(netSize)
-})
-
-val playerScore: Text = Plugins.renderMedium().text.apply {
-	value = 0.toString()
-	fill = Color.GREEN
-}
-val opponentScore: Text = Plugins.renderMedium().text.apply {
-	value = 0.toString()
-	fill = Color.GREEN
-}
+val paddleGraphic: Graphic = Graphic(Rectangle(paddleSize, Color.BLACK))
+val ballGraphic: Graphic = Graphic(Rectangle(ballSize, Color.GRAY))
+val goalGraphic: Graphic = Graphic(Rectangle(goalSize, Color.BLUE))
+val netGraphic: Graphic = Graphic(Rectangle(netSize, Color.RED))
 
 val events: EventLoop.Broadcasting = EventLoop.Broadcasting()
+
+private fun makeScoreText(score: Int): Text = Text(score.toString(), 1.0, Color.GREEN)
+
 val entities: EntityPool = EntityPool(events).apply {
 	val player = create().apply {
-		add(
+		put(
 			paddleGraphic,
 			paddleBounds,
 			Transform(Vectors.create(-4.0, 0.0, 0.0)),
@@ -95,12 +80,21 @@ val entities: EntityPool = EntityPool(events).apply {
 			ActionQueue()
 		)
 		Resources.inStream("input.yaml").use {
-			add(Input(false, HandlerReader(actions).fromYaml(it)))
+			put(
+				Input(
+					Reaction.matchType(
+						Reaction.whenCode(
+							KeyCode.W to Reaction.keyToggle(Compensated(actions["forceUp"], actions["forceDown"])),
+							KeyCode.S to Reaction.keyToggle(Compensated(actions["forceDown"], actions["forceUp"])),
+						)
+					)
+				)
+			)
 		}
 	}
 
 	val opponent = create().apply {
-		add(
+		put(
 			paddleGraphic,
 			paddleBounds,
 			Transform(Vectors.create(4.0, 0.0, 0.0)),
@@ -114,7 +108,7 @@ val entities: EntityPool = EntityPool(events).apply {
 	}
 
 	val ball = create().apply {
-		add(
+		put(
 			ballGraphic,
 			ballBounds,
 			ballTransform,
@@ -125,12 +119,20 @@ val entities: EntityPool = EntityPool(events).apply {
 			ActionQueue()
 		)
 		Resources.inStream("ballInput.yaml").use {
-			add(Input(false, HandlerReader(actions).fromYaml(it)))
+			put(
+				Input(
+					Reaction.matchType(
+						Reaction.whenCode(
+							KeyCode.SPACE to Reaction.keyToggle(Compensated(actions["reset"], Action { }))
+						)
+					)
+				)
+			)
 		}
 	}
 
 	val goalPlayer = create().apply {
-		add(
+		put(
 			goalBounds,
 			goalGraphic,
 			Transform(Vectors.create(-6.0, 0.0, 0.0)),
@@ -138,7 +140,7 @@ val entities: EntityPool = EntityPool(events).apply {
 		)
 	}
 	val goalOpponent = create().apply {
-		add(
+		put(
 			goalBounds,
 			goalGraphic,
 			Transform(Vectors.create(6.0, 0.0, 0.0)),
@@ -147,14 +149,14 @@ val entities: EntityPool = EntityPool(events).apply {
 	}
 
 	val top = create().apply {
-		add(
+		put(
 			netBounds,
 			netGraphic,
 			Transform(Vectors.create(0.0, 6.0, 0.0))
 		)
 	}
 	val bottom = create().apply {
-		add(
+		put(
 			netBounds,
 			netGraphic,
 			Transform(Vectors.create(0.0, -6.0, 0.0))
@@ -162,32 +164,30 @@ val entities: EntityPool = EntityPool(events).apply {
 	}
 
 	val playerScoreText = create().apply {
-		add(
+		put(
 			Transform(Vectors.create(-4.0, -4.0, 1.0)),
-			Graphic(playerScore)
+			Graphic(makeScoreText(0))
 		)
 	}
 	val opponentScoreText = create().apply {
-		add(
+		put(
 			Transform(Vectors.create(4.0, -4.0, 1.0)),
-			Graphic(opponentScore)
+			Graphic(makeScoreText(0))
 		)
 	}
 	val helpText = create().apply {
-		add(
+		put(
 			Transform(Vectors.create(-0.5, -4.0, 1.0)),
-			Graphic(Plugins.renderMedium().text.apply {
-				value = "Press SPACE to reset"
-			})
+			Graphic(Text("Press SPACE to reset", 2.0, Color.BLACK))
 		)
 	}
 
 	events.register(EntitiesCollided::class.java) {
 		for (id in it.collided) {
 			if (goalPlayer.id == id) {
-				opponentScore.value = goalPlayer.get(Score::class.java).value.toString()
+				opponentScoreText.put(Graphic(makeScoreText(goalPlayer.get(Score::class.java).value)))
 			} else if (goalOpponent.id == id) {
-				playerScore.value = goalOpponent.get(Score::class.java).value.toString()
+				playerScoreText.put(Graphic(makeScoreText(goalOpponent.get(Score::class.java).value)))
 			}
 		}
 	}
