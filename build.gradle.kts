@@ -6,6 +6,7 @@ plugins {
 	id("org.javamodularity.moduleplugin") version "1.+"
 	id("org.beryx.jlink") version "2.+"
 	id("org.ajoberstar.reckon") version "0.+"
+	id("com.github.breadmoirai.github-release") version "2.+"
 }
 
 tasks.wrapper {
@@ -22,7 +23,7 @@ repositories {
 	mavenCentral()
 
 	maven {
-		url = uri("https://maven.pkg.github.com/kkorolyov/flopple")
+		url = uri("https://maven.pkg.github.com/kkorolyov/flub")
 		mavenContent {
 			releasesOnly()
 		}
@@ -82,4 +83,21 @@ jlink {
 
 		installerOptions = options.toList()
 	}
+}
+
+githubRelease {
+	token(System.getenv("GITHUB_TOKEN"))
+	owner("kkorolyov")
+
+	tagName(version.toString())
+
+	body(changelog())
+
+	releaseAssets(
+		fileTree("${buildDir}/jpackage").include("*.*"),
+		fileTree("${buildDir}/libs").include("*.jar")
+	)
+}
+tasks.githubRelease {
+	dependsOn(tasks.jpackage)
 }
