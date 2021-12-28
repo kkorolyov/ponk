@@ -1,7 +1,7 @@
 name: release
 
 on:
-  push:
+  create:
     tags:
       - "[0-9]+.[0-9]+.[0-9]+"
 
@@ -29,14 +29,9 @@ jobs:
         run: ./gradlew jpackage -Preckon.stage=final
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          java-version: ${{ matrix.version }}
-          package-task: jpackage
-          token: ${{ secrets.GITHUB_TOKEN }}
       - name: release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ steps.publish-gradle.outputs.tag }}
           files: |
             build/jpackage/ponk*.*
             build/libs/ponk*.jar
