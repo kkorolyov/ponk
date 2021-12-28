@@ -4,8 +4,8 @@ module dev.kkorolyov.ponk {
 	// logging
 	requires org.slf4j;
 	requires org.apache.logging.log4j;
-	// requires com.fasterxml.jackson.dataformat.yaml;
 
+	requires javafx.media;
 	requires javafx.graphics;
 
 	requires dev.kkorolyov.pancake.platform;

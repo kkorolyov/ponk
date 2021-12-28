@@ -1,5 +1,5 @@
 [versions]
-flub = "1.+"
+flub = "0.+"
 pancake = "0.+"
 log4j = "2.+"
 jackson = "2.+"

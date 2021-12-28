@@ -1,0 +1,27 @@
+name: release
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  publish:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, windows-latest ]
+        version: [ 17 ]
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: publish-gradle
+        uses: kkorolyov/publish-gradle@0.2.0
+        with:
+          java-version: ${{ matrix.version }}
+          package-task: jpackage
+          token: ${{ secrets.GITHUB_TOKEN }}

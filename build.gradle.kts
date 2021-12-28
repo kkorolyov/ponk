@@ -1,9 +1,11 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
 plugins {
 	kotlin("jvm") version "1.+"
 	id("org.openjfx.javafxplugin") version "0.+"
 	id("org.javamodularity.moduleplugin") version "1.+"
 	id("org.beryx.jlink") version "2.+"
-	idea
+	id("org.ajoberstar.reckon") version "0.+"
 }
 
 tasks.wrapper {
@@ -21,6 +23,9 @@ repositories {
 
 	maven {
 		url = uri("https://maven.pkg.github.com/kkorolyov/flopple")
+		mavenContent {
+			releasesOnly()
+		}
 		credentials {
 			username = System.getenv("GITHUB_ACTOR")
 			password = System.getenv("GITHUB_TOKEN")
@@ -36,7 +41,9 @@ repositories {
 
 }
 dependencies {
-	implementation(libs.bundles.app)
+	implementation(libs.bundles.app) {
+		exclude("org.openjfx")
+	}
 	implementation(libs.bundles.log)
 }
 
@@ -52,19 +59,27 @@ application {
 }
 
 javafx {
+	version = tasks.compileJava.get().targetCompatibility
 	modules("javafx.media", "javafx.graphics")
 }
 
+reckon {
+	scopeFromProp()
+	snapshotFromProp()
+}
+tasks.reckonTagCreate {
+	dependsOn(tasks.check)
+}
+
 jlink {
-	mergedModule {
-		requires("java.logging")
-		requires("java.desktop")
+	forceMerge("kotlin", "slf4j", "log4j", "jackson")
 
-		requires("org.slf4j")
-		requires("org.apache.logging.log4j")
+	jpackage {
+		icon = "pancake.ico"
 
-		provides("org.slf4j.spi.SLF4JServiceProvider").with("org.apache.logging.slf4j.SLF4JServiceProvider")
+		val options = mutableListOf("--license-file", "LICENSE")
+		if (Os.isFamily(Os.FAMILY_WINDOWS)) options += "--win-dir-chooser"
+
+		installerOptions = options.toList()
 	}
-	// otherwise exists as standalone + merged module - make it just merged
-	forceMerge("kotlin")
 }

@@ -113,7 +113,7 @@ val entities: EntityPool = EntityPool(events).apply {
 			ballBounds,
 			ballTransform,
 			Velocity(Vectors.create(0.0, 0.0, 0.0)),
-			VelocityCap(Vectors.create(20.0, 20.0, 0.0)),
+			VelocityCap(Vectors.create(50.0, 50.0, 0.0)),
 			Force(Vectors.create(0.0, 0.0, 0.0)),
 			ballMass,
 			ActionQueue()
@@ -188,6 +188,8 @@ val entities: EntityPool = EntityPool(events).apply {
 				opponentScoreText.put(Graphic(makeScoreText(goalPlayer.get(Score::class.java).value)))
 			} else if (goalOpponent.id == id) {
 				playerScoreText.put(Graphic(makeScoreText(goalOpponent.get(Score::class.java).value)))
+			} else if (ball.id == id) {
+				ball[Velocity::class.java].value.scale(2.0)
 			}
 		}
 	}
