@@ -24,4 +24,5 @@ jobs:
         with:
           java-version: ${{ matrix.version }}
           package-task: githubRelease
+          docs-task: ""
           token: ${{ secrets.GITHUB_TOKEN }}
