@@ -2,8 +2,8 @@ name: release
 
 on:
   push:
-    branches:
-      - master
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+"
 
 jobs:
   publish:
@@ -19,9 +19,24 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: publish-gradle
-        uses: kkorolyov/publish-gradle@0.2.0
+      - name: java
+        uses: actions/setup-java@v2
+        with:
+          java-version: ${{ matrix.version }}
+          cache: gradle
+          distribution: zulu
+      - name: build
+        run: ./gradlew jpackage -Preckon.stage=final
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           java-version: ${{ matrix.version }}
           package-task: jpackage
           token: ${{ secrets.GITHUB_TOKEN }}
+      - name: release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.publish-gradle.outputs.tag }}
+          files: |
+            build/jpackage/ponk*.*
+            build/libs/ponk*.jar
