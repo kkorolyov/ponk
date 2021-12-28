@@ -7,22 +7,86 @@ on:
 
 jobs:
   publish:
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
+
+    outputs:
+      version: ${{ steps.getTag.outputs.version }}
 
     strategy:
       matrix:
-        os: [ windows-latest ]
-        version: [ 17 ]
+        version:
+          - 17
 
     steps:
-      - name: checkout
+      - id: checkout
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: publish
+
+      - id: publish
         uses: kkorolyov/publish-gradle@0.2.0
         with:
           java-version: ${{ matrix.version }}
-          package-task: githubRelease
+          package-task: build
           docs-task: ""
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: getTag
+        run: echo "::set-output name=version::$(git describe)"
+
+      - id: upload
+        uses: actions/upload-artifact@v2
+        with:
+          name: jar
+          path: build/libs/*.jar
+
+  package:
+    runs-on: ${{ matrix.os }}
+    needs: publish
+    if: ${{ !contains(github.event.commits[0].message, 'NOCHANGE') }}
+
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+        version:
+          - 17
+
+    steps:
+      - id: checkout
+        uses: actions/checkout@v2
+      - id: java
+        uses: actions/setup-java@v2
+        with:
+          java-version: ${{ matrix.version }}
+          cache: gradle
+          distribution: zulu
+
+      - id: package
+        run: ./gradlew jpackage "-Pjpackage.version=${{ needs.publish.outputs.version }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: upload
+        uses: actions/upload-artifact@v2
+        with:
+          name: pkg-${{ matrix.os }}-jdk${{ matrix.version }}
+          path: build/jpackage/*.*
+
+  release:
+    runs-on: ubuntu-latest
+    needs:
+      - publish
+      - package
+
+    steps:
+      - id: download
+        uses: actions/download-artifact@v2
+
+      - id: release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.publish.outputs.version }}
+          generate_release_notes: true
+          files: "**/*.*"
