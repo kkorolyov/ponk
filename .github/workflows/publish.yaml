@@ -22,4 +22,5 @@ jobs:
         uses: kkorolyov/publish-gradle@0.2.0
         with:
           java-version: ${{ matrix.version }}
+          package-task: build
           token: ${{ secrets.GITHUB_TOKEN }}
