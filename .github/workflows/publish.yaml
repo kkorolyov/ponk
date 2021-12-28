@@ -18,9 +18,14 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: publish-gradle
-        uses: kkorolyov/publish-gradle@0.2.0
+      - name: java
+        uses: actions/setup-java@v2
         with:
           java-version: ${{ matrix.version }}
-          package-task: build
-          token: ${{ secrets.GITHUB_TOKEN }}
+          cache: gradle
+          distribution: zulu
+
+      - name: tag
+        run: ./gradlew reckonTagPush --no-daemon -Preckon.stage=final
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
