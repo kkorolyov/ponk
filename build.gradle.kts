@@ -12,6 +12,14 @@ tasks.wrapper {
 	distributionType = Wrapper.DistributionType.ALL
 }
 
+reckon {
+	scopeFromProp()
+	snapshotFromProp()
+}
+tasks.reckonTagCreate {
+	dependsOn(tasks.check)
+}
+
 dependencyLocking {
 	lockAllConfigurations()
 }
@@ -38,7 +46,12 @@ repositories {
 			password = System.getenv("GITHUB_TOKEN")
 		}
 	}
-
+	maven {
+		url = uri("https://oss.sonatype.org/content/repositories/snapshots")
+		mavenContent {
+			includeGroup("no.tornado")
+		}
+	}
 }
 dependencies {
 	implementation(libs.bundles.app) {
@@ -52,23 +65,14 @@ tasks.compileKotlin {
 		jvmTarget = tasks.compileJava.get().targetCompatibility
 	}
 }
+javafx {
+	version = tasks.compileJava.get().targetCompatibility
+	modules("javafx.fxml", "javafx.web", "javafx.swing")
+}
 
 application {
 	mainModule.set("dev.kkorolyov.ponk")
 	mainClass.set("dev.kkorolyov.ponk.LauncherKt")
-}
-
-javafx {
-	version = tasks.compileJava.get().targetCompatibility
-	modules("javafx.media", "javafx.graphics")
-}
-
-reckon {
-	scopeFromProp()
-	snapshotFromProp()
-}
-tasks.reckonTagCreate {
-	dependsOn(tasks.check)
 }
 
 jlink {

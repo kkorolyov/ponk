@@ -9,15 +9,19 @@ import dev.kkorolyov.pancake.core.component.movement.Force
 import dev.kkorolyov.pancake.core.component.movement.Mass
 import dev.kkorolyov.pancake.core.component.movement.Velocity
 import dev.kkorolyov.pancake.core.component.movement.VelocityCap
-import dev.kkorolyov.pancake.core.event.EntitiesCollided
+import dev.kkorolyov.pancake.core.event.EntitiesIntersected
 import dev.kkorolyov.pancake.core.system.AccelerationSystem
 import dev.kkorolyov.pancake.core.system.ActionSystem
 import dev.kkorolyov.pancake.core.system.CappingSystem
 import dev.kkorolyov.pancake.core.system.CollisionSystem
 import dev.kkorolyov.pancake.core.system.DampingSystem
+import dev.kkorolyov.pancake.core.system.IntersectionSystem
 import dev.kkorolyov.pancake.core.system.MovementSystem
+import dev.kkorolyov.pancake.editor.openEditor
+import dev.kkorolyov.pancake.editor.registerEditor
 import dev.kkorolyov.pancake.graphics.jfx.component.Graphic
 import dev.kkorolyov.pancake.graphics.jfx.component.Lens
+import dev.kkorolyov.pancake.graphics.jfx.drawable.Oval
 import dev.kkorolyov.pancake.graphics.jfx.drawable.Rectangle
 import dev.kkorolyov.pancake.graphics.jfx.drawable.Text
 import dev.kkorolyov.pancake.graphics.jfx.system.CameraSystem
@@ -43,16 +47,16 @@ import dev.kkorolyov.ponk.component.Follow
 import dev.kkorolyov.ponk.component.Score
 import dev.kkorolyov.ponk.system.FollowSystem
 import dev.kkorolyov.ponk.system.ScoreSystem
-import javafx.application.Application
 import javafx.application.Platform
 import javafx.event.EventHandler
-import javafx.scene.Scene
 import javafx.scene.canvas.Canvas
 import javafx.scene.image.Image
 import javafx.scene.input.KeyCode
 import javafx.scene.layout.TilePane
 import javafx.scene.paint.Color
 import javafx.stage.Stage
+import tornadofx.App
+import tornadofx.View
 
 val pane = TilePane()
 
@@ -78,13 +82,13 @@ val netSize: Vector3 = Vectors.create(10.0, 2.0, 0.0)
 
 val ballTransform = Transform(Vectors.create(0.0, 0.0, 0.0))
 
-val paddleBounds = Bounds(paddleSize)
-val ballBounds = Bounds(ballSize)
-val goalBounds = Bounds(goalSize)
-val netBounds = Bounds(netSize)
+val paddleBounds = Bounds.box(paddleSize)
+val ballBounds = Bounds.round(ballSize.x / 2)
+val goalBounds = Bounds.box(goalSize)
+val netBounds = Bounds.box(netSize)
 
 val paddleGraphic: Graphic = Graphic(Rectangle(paddleSize, Color.BLACK))
-val ballGraphic: Graphic = Graphic(Rectangle(ballSize, Color.GRAY))
+val ballGraphic: Graphic = Graphic(Oval(ballSize, Color.GRAY))
 val goalGraphic: Graphic = Graphic(Rectangle(goalSize, Color.BLUE))
 val netGraphic: Graphic = Graphic(Rectangle(netSize, Color.RED))
 
@@ -103,6 +107,30 @@ val entities: EntityPool = EntityPool(events).apply {
 				Vectors.create(64.0, 64.0)
 			)
 		)
+	}
+
+	val ball = create().apply {
+		put(
+			ballGraphic,
+			ballBounds,
+			ballTransform,
+			Velocity(Vectors.create(0.0, 0.0, 0.0)),
+			VelocityCap(Vectors.create(50.0, 50.0, 0.0)),
+			Force(Vectors.create(0.0, 0.0, 0.0)),
+			ballMass,
+			ActionQueue()
+		)
+		Resources.inStream("ballInput.yaml").use {
+			put(
+				Input(
+					Reaction.matchType(
+						Reaction.whenCode(
+							KeyCode.SPACE to Reaction.keyToggle(Compensated(actions["reset"], Action { }))
+						)
+					)
+				)
+			)
+		}
 	}
 
 	val player = create().apply {
@@ -143,30 +171,6 @@ val entities: EntityPool = EntityPool(events).apply {
 			paddleMass,
 			Follow(ballTransform.position, 0.2)
 		)
-	}
-
-	val ball = create().apply {
-		put(
-			ballGraphic,
-			ballBounds,
-			ballTransform,
-			Velocity(Vectors.create(0.0, 0.0, 0.0)),
-			VelocityCap(Vectors.create(50.0, 50.0, 0.0)),
-			Force(Vectors.create(0.0, 0.0, 0.0)),
-			ballMass,
-			ActionQueue()
-		)
-		Resources.inStream("ballInput.yaml").use {
-			put(
-				Input(
-					Reaction.matchType(
-						Reaction.whenCode(
-							KeyCode.SPACE to Reaction.keyToggle(Compensated(actions["reset"], Action { }))
-						)
-					)
-				)
-			)
-		}
 	}
 
 	val goalPlayer = create().apply {
@@ -220,14 +224,12 @@ val entities: EntityPool = EntityPool(events).apply {
 		)
 	}
 
-	events.register(EntitiesCollided::class.java) {
-		for (id in it.collided) {
+	events.register(EntitiesIntersected::class.java) {
+		for (id in listOf(it.a, it.b).map { it.id }) {
 			if (goalPlayer.id == id) {
 				opponentScoreText.put(Graphic(makeScoreText(goalPlayer.get(Score::class.java).value)))
 			} else if (goalOpponent.id == id) {
 				playerScoreText.put(Graphic(makeScoreText(goalOpponent.get(Score::class.java).value)))
-			} else if (ball.id == id) {
-				ball[Velocity::class.java].value.scale(2.0)
 			}
 		}
 	}
@@ -238,13 +240,14 @@ val gameLoop = GameLoop(
 		events,
 		entities,
 		listOf(
+			CollisionSystem(),
 			ActionSystem(),
 			InputSystem(listOf(pane)),
 			AccelerationSystem(),
 			CappingSystem(),
 			MovementSystem(),
 			DampingSystem(),
-			CollisionSystem(),
+			IntersectionSystem(),
 			AudioSystem(),
 			CameraSystem(),
 			DrawSystem(),
@@ -256,29 +259,44 @@ val gameLoop = GameLoop(
 
 fun main() {
 	Platform.startup {
-		App(Scene(pane), gameLoop::stop)
-		pane.requestFocus()
+		Launcher(gameLoop)
 	}
-	Thread(gameLoop::start).start()
+	gameLoop.start()
 }
 
 private fun makeScoreText(score: Int): Text = Text(score.toString(), 1.0, Color.GREEN)
 
-class App(private val scene: Scene, private val onClose: () -> Unit) : Application() {
+class Launcher(private val gameLoop: GameLoop) : App(MainView::class) {
 	init {
+		registerEditor(gameLoop)
 		start(Stage())
 	}
 
-	override fun start(primaryStage: Stage) {
-		primaryStage.title = "Ponk"
-		primaryStage.icons += Image(Config.get().getProperty("icon"))
-		primaryStage.scene = scene
+	override fun start(stage: Stage) {
+		stage.icons += Image(Config.get().getProperty("icon"))
 
-		primaryStage.width = Config.get().getProperty("width").toDouble()
-		primaryStage.height = Config.get().getProperty("height").toDouble()
+		stage.width = Config.get().getProperty("width").toDouble()
+		stage.height = Config.get().getProperty("height").toDouble()
 
-		primaryStage.onCloseRequest = EventHandler { onClose() }
+		stage.onCloseRequest = EventHandler { gameLoop.stop() }
 
-		primaryStage.show()
+		super.start(stage)
+	}
+}
+
+class MainView : View(Config.get().getProperty("title")) {
+	override val root = pane
+
+	override fun onDock() {
+		root.requestFocus()
+
+		currentStage?.let { curStage ->
+			curStage.scene?.onKeyPressed = EventHandler { e ->
+				when (e.code) {
+					KeyCode.F1 -> openEditor(curStage)
+					else -> {}
+				}
+			}
+		}
 	}
 }

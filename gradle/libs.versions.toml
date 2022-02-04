@@ -1,20 +1,28 @@
 [versions]
 flub = "0.+"
+tornadofx = "2.+"
 pancake = "0.+"
+
+slf4j = "1.+"
 log4j = "2.+"
 jackson = "2.+"
 
 [libraries]
 flub = { module = "dev.kkorolyov:flub", version.ref = "flub" }
+tornadofx = { module = "no.tornado:tornadofx", version.ref = "tornadofx" }
+
 pancake-platform = { module = "dev.kkorolyov.pancake:platform", version.ref = "pancake" }
 pancake-core = { module = "dev.kkorolyov.pancake:core", version.ref = "pancake" }
 pancake-graphics = { module = "dev.kkorolyov.pancake:graphics-jfx", version.ref = "pancake" }
 pancake-audio = { module = "dev.kkorolyov.pancake:audio-jfx", version.ref = "pancake" }
 pancake-input = { module = "dev.kkorolyov.pancake:input-jfx", version.ref = "pancake" }
+pancake-editor = { module = "dev.kkorolyov.pancake:editor", version.ref = "pancake" }
+pancake-editor-core = { module = "dev.kkorolyov.pancake:editor-core", version.ref = "pancake" }
 
+slf4j = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 log4j = { module = "org.apache.logging.log4j:log4j-slf4j18-impl", version.ref = "log4j" }
 jackson = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml", version.ref = "jackson" }
 
 [bundles]
-app = ["flub", "pancake-platform", "pancake-core", "pancake-graphics", "pancake-audio", "pancake-input"]
-log = ["log4j", "jackson"]
+app = ["flub", "pancake-platform", "pancake-core", "pancake-graphics", "pancake-audio", "pancake-input", "pancake-editor", "pancake-editor-core", "tornadofx"]
+log = ["slf4j", "log4j", "jackson"]
