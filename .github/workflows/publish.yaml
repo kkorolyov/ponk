@@ -24,7 +24,7 @@ jobs:
           fetch-depth: 0
 
       - id: publish
-        uses: kkorolyov/publish-gradle@0.2.2
+        uses: kkorolyov/publish-gradle@0.3.0
         with:
           java-version: ${{ matrix.version }}
           package-task: build
