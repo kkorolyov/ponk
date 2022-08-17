@@ -3,13 +3,6 @@ forceUp:
 forceDown:
   force: [ 0, -1 ]
 
-up:
-  start: forceUp
-  end: forceDown
-down:
-  start: forceDown
-  end: forceUp
-
 reset:
   - position: [ 0, 0 ]
     orientation: [ 0, 0 ]

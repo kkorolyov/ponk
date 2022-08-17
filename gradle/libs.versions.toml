@@ -1,28 +1,42 @@
 [versions]
 flub = "0.+"
-tornadofx = "2.+"
 pancake = "0.+"
 
 slf4j = "1.+"
 log4j = "2.+"
 jackson = "2.+"
 
+lwjgl = "3.+"
+
+imgui = "1.+"
+
 [libraries]
 flub = { module = "dev.kkorolyov:flub", version.ref = "flub" }
-tornadofx = { module = "no.tornado:tornadofx", version.ref = "tornadofx" }
 
 pancake-platform = { module = "dev.kkorolyov.pancake:platform", version.ref = "pancake" }
 pancake-core = { module = "dev.kkorolyov.pancake:core", version.ref = "pancake" }
-pancake-graphics = { module = "dev.kkorolyov.pancake:graphics-jfx", version.ref = "pancake" }
-pancake-audio = { module = "dev.kkorolyov.pancake:audio-jfx", version.ref = "pancake" }
-pancake-input = { module = "dev.kkorolyov.pancake:input-jfx", version.ref = "pancake" }
+pancake-audio-al = { module = "dev.kkorolyov.pancake:audio-al", version.ref = "pancake" }
+pancake-graphics-gl = { module = "dev.kkorolyov.pancake:graphics-gl", version.ref = "pancake" }
+pancake-input-glfw = { module = "dev.kkorolyov.pancake:input-glfw", version.ref = "pancake" }
 pancake-editor = { module = "dev.kkorolyov.pancake:editor", version.ref = "pancake" }
 pancake-editor-core = { module = "dev.kkorolyov.pancake:editor-core", version.ref = "pancake" }
+
+lwjgl = { module = "org.lwjgl:lwjgl" }
+lwjgl-glfw = { module = "org.lwjgl:lwjgl-glfw" }
+lwjgl-opengl = { module = "org.lwjgl:lwjgl-opengl" }
+lwjgl-openal = { module = "org.lwjgl:lwjgl-openal" }
+lwjgl-stb = { module = "org.lwjgl:lwjgl-stb" }
+
+imgui-windows = { module = "io.github.spair:imgui-java-natives-windows", version.ref = "imgui" }
+imgui-macos = { module = "io.github.spair:imgui-java-natives-macos", version.ref = "imgui" }
+imgui-linux = { module = "io.github.spair:imgui-java-natives-linux", version.ref = "imgui" }
 
 slf4j = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 log4j = { module = "org.apache.logging.log4j:log4j-slf4j18-impl", version.ref = "log4j" }
 jackson = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml", version.ref = "jackson" }
 
 [bundles]
-app = ["flub", "pancake-platform", "pancake-core", "pancake-graphics", "pancake-audio", "pancake-input", "pancake-editor", "pancake-editor-core", "tornadofx"]
+stdlib = ["flub"]
+pancake = ["pancake-platform", "pancake-core", "pancake-audio-al", "pancake-graphics-gl", "pancake-input-glfw", "pancake-editor", "pancake-editor-core"]
+lwjgl = ["lwjgl", "lwjgl-glfw", "lwjgl-opengl", "lwjgl-openal", "lwjgl-stb"]
 log = ["slf4j", "log4j", "jackson"]
