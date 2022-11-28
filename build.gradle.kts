@@ -1,7 +1,7 @@
 import org.gradle.internal.os.OperatingSystem
 
 plugins {
-	kotlin("jvm") version "1.7.10"
+	kotlin("jvm") version "1.7.22"
 	id("com.github.jk1.dependency-license-report") version "2.+"
 	id("org.beryx.jlink") version "2.+"
 	id("org.ajoberstar.reckon") version "0.+"
