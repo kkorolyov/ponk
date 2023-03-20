@@ -2,7 +2,7 @@
 flub = "0.+"
 pancake = "0.+"
 
-slf4j = "1.+"
+slf4j = "2.+"
 log4j = "2.+"
 jackson = "2.+"
 
